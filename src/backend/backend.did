@@ -18,4 +18,44 @@ service : {
   increment : () -> (nat64);
   prompt : (text) -> (text);
   set_count : (nat64) -> (nat64);
-}
+
+  // --- PoPAI New Methods ---
+  start_verification_challenge : () -> (VerificationChallenge);
+  submit_challenge_result : (VerificationSubmission) -> (VerificationResult);
+  get_nft_metadata : (text) -> (opt NftMetadata) query; // Get by token_id
+
+  // Optional: for ZK proof simulation
+  generate_zk_proof_mock : (text) -> (record { proof_data: text; public_input: text });
+};
+
+// PoPAI Specific Types
+type VerificationChallenge = record {
+  id: text; // Unique ID for this challenge instance
+  prompt_type: variant { Blink, Nod, SayPhrase }; // Example challenge types
+  prompt_text: text; // e.g., "Blink twice", "Say 'My voice is my passport'"
+  nonce: text; // Random nonce to prevent replay attacks
+};
+
+type VerificationSubmission = record {
+  challenge_id: text;
+  // For a real implementation, this would be encrypted biometric data or derived features
+  // For mock, it could be a simple string or boolean indicating user action
+  mock_data: text;
+  client_timestamp: nat64;
+};
+
+type VerificationResult = record {
+  success: bool;
+  nft_id: opt text; // NFT ID if successful (mocked for now)
+  error_message: opt text;
+  verification_hash: opt text; // On-chain hash of this verification event
+};
+
+type NftMetadata = record {
+  token_id: text;
+  name: text;
+  description: text;
+  issued_at: nat64; // Timestamp
+  verification_hash: text;
+  // Could add challenge_level, expiry, etc. as per PRD
+};

@@ -1,72 +1,68 @@
-import { useState } from "react";
-import ReactIcon from "../assets/React-icon.webp";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Layout } from './components/layout';
+import {
+  HomePage,
+  ChallengePage,
+  SuccessPage,
+  DashboardPage,
+  DaoReputationPage,
+  // You can also import the existing views if you want to integrate them into the new layout/routing
+  // CounterView,
+  // GreetingView,
+  // LlmPromptView
+} from './views';
+import { AnimatePresence } from 'framer-motion';
 
-// Import components and views
-import { Loader, ErrorDisplay } from "./components";
-import { GreetingView, CounterView, LlmPromptView } from "./views";
+// For any global styles or specific page styles that Tailwind doesn't cover directly
+// import './App.css'; // Example if you had an App.css
 
 function App() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | undefined>();
+  // The existing loading/error states might be managed per-page or via a global context later
+  // const [loading, setLoading] = useState(false);
+  // const [error, setError] = useState<string | undefined>();
 
-  const handleError = (errorMessage: string) => {
-    setError(errorMessage);
-  };
-
-  const logoStyle = {
-    animation: "logo-spin 60s linear infinite",
-  };
+  // const handleError = (errorMessage: string) => {
+  //   setError(errorMessage);
+  // };
 
   return (
-    <>
-      <style>
-        {`
-          @keyframes logo-spin {
-            from {
-              transform: rotate(0deg);
-            }
-            to {
-              transform: rotate(360deg);
-            }
-          }
-        `}
-      </style>
-      <div className="flex min-h-screen items-center justify-center bg-gray-800 text-white">
-        <div className="mx-auto w-full max-w-4xl space-y-8 p-8 text-center">
-          <div className="mb-8">
-            <a href="https://reactjs.org" target="_blank" rel="noreferrer">
-              <img
-                src={ReactIcon}
-                className="mx-auto h-24 p-6 will-change-[filter] hover:drop-shadow-[0_0_2em_#61dafbaa] motion-reduce:animate-none"
-                style={logoStyle}
-                alt="React logo"
-              />
-            </a>
-          </div>
-
-          <div className="space-y-4">
-            <h1 className="text-4xl font-bold">Vibe Coding Template</h1>
-            <h2 className="text-xl">React + Rust + Internet Computer</h2>
-          </div>
-
-          {/* Content Sections */}
-          <div className="space-y-6">
-            {/* Greeting Section */}
-            <GreetingView onError={handleError} setLoading={setLoading} />
-
-            {/* Counter Section */}
-            <CounterView onError={handleError} setLoading={setLoading} />
-
-            {/* LLM Prompt Section */}
-            <LlmPromptView onError={handleError} setLoading={setLoading} />
-          </div>
-
-          {/* Loading and Error States */}
-          {loading && !error && <Loader />}
-          {!!error && <ErrorDisplay message={error} />}
-        </div>
-      </div>
-    </>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={
+            <AnimatePresence mode="wait">
+              <HomePage />
+            </AnimatePresence>
+          } />
+          <Route path="challenge" element={
+            <AnimatePresence mode="wait">
+              <ChallengePage />
+            </AnimatePresence>
+          } />
+          <Route path="success" element={
+            <AnimatePresence mode="wait">
+              <SuccessPage />
+            </AnimatePresence>
+          } />
+          <Route path="dashboard" element={
+            <AnimatePresence mode="wait">
+              <DashboardPage />
+            </AnimatePresence>
+          } />
+          <Route path="dao-reputation" element={
+            <AnimatePresence mode="wait">
+              <DaoReputationPage />
+            </AnimatePresence>
+          } />
+          {/*
+          Example of integrating old views if needed:
+          <Route path="counter" element={<CounterView onError={handleError} setLoading={setLoading} />} />
+          <Route path="greeting" element={<GreetingView onError={handleError} setLoading={setLoading} />} />
+          <Route path="llm" element={<LlmPromptView onError={handleError} setLoading={setLoading} />} />
+          */}
+        </Route>
+      </Routes>
+    </Router>
   );
 }
 
