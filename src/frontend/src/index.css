@@ -2,7 +2,7 @@
 
 @layer base {
   body {
-    @apply bg-gray-900 text-gray-100 font-sans antialiased;
+    @apply bg-gray-900 font-sans text-gray-100 antialiased;
   }
 
   /* Custom scrollbar for a more modern feel - Webkit only */
@@ -14,7 +14,7 @@
     @apply bg-gray-800;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-cyan-600 rounded-full;
+    @apply rounded-full bg-cyan-600;
   }
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-cyan-500;
@@ -23,13 +23,19 @@
 
 /* Basic neon glow text utility - can be expanded in tailwind.config.js if needed */
 .text-glow-cyan {
-  text-shadow: 0 0 5px theme('colors.cyan.500'), 0 0 10px theme('colors.cyan.600');
+  text-shadow:
+    0 0 5px theme("colors.cyan.500"),
+    0 0 10px theme("colors.cyan.600");
 }
 .text-glow-purple {
-  text-shadow: 0 0 5px theme('colors.purple.500'), 0 0 10px theme('colors.purple.600');
+  text-shadow:
+    0 0 5px theme("colors.purple.500"),
+    0 0 10px theme("colors.purple.600");
 }
 .text-glow-green {
-  text-shadow: 0 0 5px theme('colors.green.500'), 0 0 10px theme('colors.green.600');
+  text-shadow:
+    0 0 5px theme("colors.green.500"),
+    0 0 10px theme("colors.green.600");
 }
 
 /* Optional: Define a font in tailwind.config.js and apply here, or use a web font */

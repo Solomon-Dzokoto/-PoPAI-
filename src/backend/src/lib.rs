@@ -9,7 +9,6 @@ use std::collections::HashMap;
 // For this PoPAI implementation, they are not directly used but are kept to avoid breaking existing frontend calls.
 use ic_llm::{ChatMessage as LlmChatMessage, Model as LlmModel};
 
-
 // --- POLLING PLACEHOLDER ---
 // This is a placeholder for where you might integrate with an external AI service
 // if not running models directly on IC. For this PRD, AI runs on-chain.
@@ -20,7 +19,6 @@ use ic_llm::{ChatMessage as LlmChatMessage, Model as LlmModel};
 //     result: Option<String>, // e.g. "blink_detected_true"
 // }
 // --- END POLLING PLACEHOLDER ---
-
 
 // --- PoPAI Specific Data Structures ---
 
@@ -46,7 +44,7 @@ pub struct VerificationSubmission {
     client_timestamp: u64,
     // Additional fields for AI model hooks
     encrypted_biometric_data: Vec<u8>, // Encrypted biometric data for ONNX inference
-    behavioral_data: String, // Behavioral data as JSON string
+    behavioral_data: String,           // Behavioral data as JSON string
 }
 
 #[derive(CandidType, Clone, Deserialize, Debug)]
@@ -65,7 +63,7 @@ pub struct NftMetadata {
     issued_at: u64, // Timestamp
     verification_hash: String,
     owner: Principal, // Soulbound to this principal
-                         // Could add challenge_level, expiry, etc.
+                      // Could add challenge_level, expiry, etc.
 }
 
 #[derive(CandidType, Clone, Deserialize, Debug)]
@@ -74,30 +72,37 @@ pub struct ZkProofMock {
     public_input: String,
 }
 
-
 // --- Canister State ---
 thread_local! {
-    static COUNTER: RefCell<u64> = RefCell::new(0); // Existing state from template
+    static COUNTER: RefCell<u64> = const { RefCell::new(0) }; // Existing state from template
 
     // PoPAI State
     static ACTIVE_CHALLENGES: RefCell<HashMap<String, VerificationChallenge>> = RefCell::new(HashMap::new());
     static MINTED_NFTS: RefCell<HashMap<String, NftMetadata>> = RefCell::new(HashMap::new());
     // Store by owner Principal to easily check if a user already has an NFT
     static OWNER_TO_NFT_ID: RefCell<HashMap<Principal, String>> = RefCell::new(HashMap::new());
-    static VERIFICATION_LOGS: RefCell<Vec<String>> = RefCell::new(Vec::new()); // Store verification hashes or summary
-    static NEXT_NFT_ID: RefCell<u64> = RefCell::new(0);
+    static VERIFICATION_LOGS: RefCell<Vec<String>> = const { RefCell::new(Vec::new()) }; // Store verification hashes or summary
+    static NEXT_NFT_ID: RefCell<u64> = const { RefCell::new(0) };
 }
 
 // Helper to generate unique IDs (simplified)
 fn generate_id() -> String {
-    format!("{}-{}", ic_cdk::api::time(), ic_cdk::api::caller().to_text())
+    format!(
+        "{}-{}",
+        ic_cdk::api::time(),
+        ic_cdk::api::caller().to_text()
+    )
 }
 
 async fn generate_nonce() -> String {
-    let random_bytes: [u8; 16] = ic_cdk::api::management_canister::main::raw_rand().await.unwrap().0.try_into().unwrap_or_default();
+    let random_bytes: [u8; 16] = ic_cdk::api::management_canister::main::raw_rand()
+        .await
+        .unwrap()
+        .0
+        .try_into()
+        .unwrap_or_default();
     hex::encode(random_bytes)
 }
-
 
 // --- PoPAI Canister Methods ---
 
@@ -119,10 +124,12 @@ async fn start_verification_challenge() -> VerificationChallenge {
     let challenges = [
         (PromptType::Blink, "Blink twice slowly."),
         (PromptType::Nod, "Nod your head up and down."),
-        (PromptType::SayPhrase, "Clearly say: 'My identity is sovereign'"),
+        (
+            PromptType::SayPhrase,
+            "Clearly say: 'My identity is sovereign'",
+        ),
     ];
-    let (prompt_type, prompt_text) = &challenges[ (time() as usize) % challenges.len() ];
-
+    let (prompt_type, prompt_text) = &challenges[(time() as usize) % challenges.len()];
 
     let challenge = VerificationChallenge {
         id: challenge_id.clone(),
@@ -177,8 +184,13 @@ async fn submit_challenge_result(submission: VerificationSubmission) -> Verifica
         verification_passed
     );
     // Using a simple string concatenation for mock; a real hash (e.g., SHA256) should be used.
-    let verification_hash = format!("mock_hash_{:x}", md5::compute(verification_data_to_hash.as_bytes()).0.iter().fold(0u64, |acc, &byte| (acc << 8) | byte as u64));
-
+    let verification_hash = format!(
+        "mock_hash_{:x}",
+        md5::compute(verification_data_to_hash.as_bytes())
+            .0
+            .iter()
+            .fold(0u64, |acc, &byte| (acc << 8) | byte as u64)
+    );
 
     VERIFICATION_LOGS.with(|log| log.borrow_mut().push(verification_hash.clone()));
 
@@ -186,11 +198,14 @@ async fn submit_challenge_result(submission: VerificationSubmission) -> Verifica
         // 4. Mint Soulbound NFT (mock DIP-721) if successful
         // Check if user already has an NFT by this canister
         if OWNER_TO_NFT_ID.with(|owner_map| owner_map.borrow().contains_key(&caller)) {
-            let existing_nft_id = OWNER_TO_NFT_ID.with(|om| om.borrow().get(&caller).unwrap().clone());
-             return VerificationResult {
+            let existing_nft_id =
+                OWNER_TO_NFT_ID.with(|om| om.borrow().get(&caller).unwrap().clone());
+            return VerificationResult {
                 success: true, // Still a success, but they get their existing token
                 nft_id: Some(existing_nft_id),
-                error_message: Some("User already verified. Returning existing token ID.".to_string()),
+                error_message: Some(
+                    "User already verified. Returning existing token ID.".to_string(),
+                ),
                 verification_hash: Some(verification_hash),
             };
         }
@@ -249,7 +264,10 @@ async fn generate_zk_proof_mock(verification_hash: String) -> ZkProofMock {
     // Placeholder: AI model execution hash (would come from the model run)
     let model_execution_hash = "mock_model_hash_abc123";
 
-    let public_input = format!("verification_hash:{},model_hash:{}", verification_hash, model_execution_hash);
+    let public_input = format!(
+        "verification_hash:{},model_hash:{}",
+        verification_hash, model_execution_hash
+    );
     let proof_data = format!("mock_zk_proof_for_{}", public_input);
 
     // Simulate a delay for computation
@@ -272,17 +290,22 @@ fn onnx_inference_hook(encrypted_data: &Vec<u8>) -> bool {
     // 3. Call ONNX runtime with the model and input
     //    (Requires ONNX runtime Wasm build and ic-sys/ic0 calls for resource limits)
     // 4. Interpret model output (e.g., liveness score, feature vector)
-    ic_cdk::println!("Placeholder: ONNX inference hook called with data of length {}", encrypted_data.len());
+    ic_cdk::println!(
+        "Placeholder: ONNX inference hook called with data of length {}",
+        encrypted_data.len()
+    );
     true // mock result
 }
 
 fn behavioral_scoring_hook(behavioral_data: &String) -> f32 {
     // 1. Parse behavioral data (e.g., mouse movements, reaction times json)
     // 2. Apply scoring logic or pass to a behavioral model
-    ic_cdk::println!("Placeholder: Behavioral scoring hook called with data: {}", behavioral_data);
+    ic_cdk::println!(
+        "Placeholder: Behavioral scoring hook called with data: {}",
+        behavioral_data
+    );
     0.95 // mock score
 }
-
 
 // --- Existing Canister Methods (from template) ---
 // These are kept to ensure the frontend parts that might call them don't break immediately.

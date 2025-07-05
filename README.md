@@ -27,6 +27,7 @@ This project aims to provide a secure, private, and decentralized way to verify 
 - [📩 Submit Your Project!](#-submit-your-project)
 
 ---
+
 ---
 
 ## 🚀 Getting Started
@@ -43,7 +44,8 @@ This project aims to provide a secure, private, and decentralized way to verify 
 git clone <repository-url>
 cd popai-project-directory
 ```
-*(Replace `<repository-url>` and `popai-project-directory`)*
+
+_(Replace `<repository-url>` and `popai-project-directory`)_
 
 ### 2. Install Frontend Dependencies
 
@@ -54,9 +56,11 @@ cd src/frontend
 npm install
 cd ../..
 ```
-*(This brings you back to the root directory)*
+
+_(This brings you back to the root directory)_
 
 Alternatively, from the root directory:
+
 ```bash
 npm install --prefix src/frontend
 ```
@@ -68,7 +72,8 @@ In one terminal window, navigate to the project root and run:
 ```bash
 dfx start --clean --background
 ```
-*(The `--background` flag is optional; remove it to see replica logs in the current terminal).*
+
+_(The `--background` flag is optional; remove it to see replica logs in the current terminal)._
 
 ### 4. Deploy Canisters
 
@@ -77,8 +82,9 @@ In another terminal window, from the project root:
 ```bash
 dfx deploy
 ```
+
 This command will deploy the `backend` (PoPAI logic) and `frontend` canisters as defined in `dfx.json`.
-*(Note: The project also includes an `llm` canister in `dfx.json` as part of the original template. It will be deployed but is not actively used by the core PoPAI mock functionality).*
+_(Note: The project also includes an `llm` canister in `dfx.json` as part of the original template. It will be deployed but is not actively used by the core PoPAI mock functionality)._
 
 ### 5. Start the Frontend Development Server
 
@@ -88,6 +94,7 @@ To run the React frontend with hot reloading:
 cd src/frontend
 npm start
 ```
+
 The application will typically be available at `http://localhost:5173` (Vite's default) or a port provided by `dfx`. Check the output of `dfx deploy` for the frontend canister URL.
 
 ### 6. Run Tests
