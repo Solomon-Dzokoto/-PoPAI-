@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Home, ShieldCheck, LayoutDashboard, Users } from 'lucide-react';
+import { Home,  LayoutDashboard, Users } from 'lucide-react';
 
 const Header: React.FC = () => {
   return (

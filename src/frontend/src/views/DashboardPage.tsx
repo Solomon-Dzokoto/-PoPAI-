@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Terminal, Code, Users, Settings } from 'lucide-react';
+import { Terminal, Code,  Settings } from 'lucide-react';
 
 const CodeBlock: React.FC<{ children: string; language?: string }> = ({ children, language = 'javascript' }) => (
   <pre className={`bg-gray-900 p-4 rounded-lg overflow-x-auto border border-gray-700 text-sm font-mono text-cyan-300`}>

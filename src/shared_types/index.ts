@@ -1,4 +1,4 @@
-import type { Principal } from '@dfinity/principal';
+import type { Principal } from "@dfinity/principal";
 
 // Corresponds to Candid: variant { Blink, Nod, SayPhrase }
 export enum PromptTypeUi {
@@ -20,6 +20,8 @@ export interface VerificationSubmissionUi {
   challenge_id: string;
   mock_data: string;
   client_timestamp: bigint; // nat64 maps to bigint in JS
+  encrypted_biometric_data: Uint8Array; // vec nat8 maps to Uint8Array in JS
+  behavioral_data: string; // JSON string for behavioral data
 }
 
 // Corresponds to Candid: record VerificationResult
@@ -53,7 +55,9 @@ export interface ZkProofMockUi {
 // and for creating a typed actor instance in frontend services.
 export interface PopaiBackendActor {
   start_verification_challenge: () => Promise<VerificationChallengeUi>;
-  submit_challenge_result: (submission: VerificationSubmissionUi) => Promise<VerificationResultUi>;
+  submit_challenge_result: (
+    submission: VerificationSubmissionUi,
+  ) => Promise<VerificationResultUi>;
   get_nft_metadata: (token_id: string) => Promise<[] | [NftMetadataUi]>;
   generate_zk_proof_mock: (verification_hash: string) => Promise<ZkProofMockUi>;
 

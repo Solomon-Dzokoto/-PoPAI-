@@ -9,53 +9,46 @@ type ChatMessage = variant {
   system : record { content : text };
 };
 type FunctionCall = record { name : text; arguments : vec ToolCallArgument };
+type NftMetadata = record {
+  issued_at : nat64;
+  token_id : text;
+  owner : principal;
+  name : text;
+  description : text;
+  verification_hash : text;
+};
+type PromptType = variant { Nod; Blink; SayPhrase };
 type ToolCall = record { id : text; function : FunctionCall };
 type ToolCallArgument = record { value : text; name : text };
+type VerificationChallenge = record {
+  id : text;
+  prompt_text : text;
+  prompt_type : PromptType;
+  nonce : text;
+};
+type VerificationResult = record {
+  nft_id : opt text;
+  error_message : opt text;
+  verification_hash : opt text;
+  success : bool;
+};
+type VerificationSubmission = record {
+  behavioral_data : text;
+  encrypted_biometric_data : blob;
+  mock_data : text;
+  challenge_id : text;
+  client_timestamp : nat64;
+};
+type ZkProofMock = record { public_input : text; proof_data : text };
 service : {
   chat : (vec ChatMessage) -> (text);
+  generate_zk_proof_mock : (text) -> (ZkProofMock);
   get_count : () -> (nat64) query;
+  get_nft_metadata : (text) -> (opt NftMetadata) query;
   greet : (text) -> (text) query;
   increment : () -> (nat64);
   prompt : (text) -> (text);
   set_count : (nat64) -> (nat64);
-
-  // --- PoPAI New Methods ---
   start_verification_challenge : () -> (VerificationChallenge);
   submit_challenge_result : (VerificationSubmission) -> (VerificationResult);
-  get_nft_metadata : (text) -> (opt NftMetadata) query; // Get by token_id
-
-  // Optional: for ZK proof simulation
-  generate_zk_proof_mock : (text) -> (record { proof_data: text; public_input: text });
-};
-
-// PoPAI Specific Types
-type VerificationChallenge = record {
-  id: text; // Unique ID for this challenge instance
-  prompt_type: variant { Blink, Nod, SayPhrase }; // Example challenge types
-  prompt_text: text; // e.g., "Blink twice", "Say 'My voice is my passport'"
-  nonce: text; // Random nonce to prevent replay attacks
-};
-
-type VerificationSubmission = record {
-  challenge_id: text;
-  // For a real implementation, this would be encrypted biometric data or derived features
-  // For mock, it could be a simple string or boolean indicating user action
-  mock_data: text;
-  client_timestamp: nat64;
-};
-
-type VerificationResult = record {
-  success: bool;
-  nft_id: opt text; // NFT ID if successful (mocked for now)
-  error_message: opt text;
-  verification_hash: opt text; // On-chain hash of this verification event
-};
-
-type NftMetadata = record {
-  token_id: text;
-  name: text;
-  description: text;
-  issued_at: nat64; // Timestamp
-  verification_hash: text;
-  // Could add challenge_level, expiry, etc. as per PRD
-};
+}

@@ -37,4 +37,45 @@ export const backendService = {
   async sendLlmPrompt(prompt: string): Promise<string> {
     return await backend.prompt(prompt);
   },
+
+  /**
+   * Starts a new verification challenge
+   * @returns Promise with the verification challenge details
+   */
+  async startVerificationChallenge(): Promise<any> {
+    return await backend.start_verification_challenge();
+  },
+
+  /**
+   * Submits a challenge result for verification
+   * @param submission The verification submission data
+   * @returns Promise with the verification result
+   */
+  async submitChallengeResult(submission: {
+    challenge_id: string;
+    mock_data: string;
+    client_timestamp: bigint;
+    encrypted_biometric_data: Uint8Array;
+    behavioral_data: string;
+  }): Promise<any> {
+    return await backend.submit_challenge_result(submission);
+  },
+
+  /**
+   * Gets NFT metadata by token ID
+   * @param tokenId The NFT token ID
+   * @returns Promise with NFT metadata or null
+   */
+  async getNftMetadata(tokenId: string): Promise<any> {
+    return await backend.get_nft_metadata(tokenId);
+  },
+
+  /**
+   * Generates a ZK proof mock
+   * @param verificationHash The verification hash
+   * @returns Promise with ZK proof data
+   */
+  async generateZkProofMock(verificationHash: string): Promise<any> {
+    return await backend.generate_zk_proof_mock(verificationHash);
+  },
 };

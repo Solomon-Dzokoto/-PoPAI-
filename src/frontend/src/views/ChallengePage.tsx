@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Mic, AlertTriangle, CheckCircle, RefreshCw } from 'lucide-react';
+import { Camera, Mic, AlertTriangle, CheckCircle, RefreshCw, Zap } from 'lucide-react';
+import { backendService } from '../services/backendService';
 
 // Mock challenges
 const challenges = [
@@ -10,15 +11,17 @@ const challenges = [
   { id: 'say_phrase', text: 'Say "PoPAI is cool"', duration: 7, requiresMic: true },
   { id: 'turn_left', text: 'Turn head to the left', duration: 5 },
 ];
+console.log("🚀 ~ challenges:", challenges)
 
 const ChallengePage: React.FC = () => {
   const navigate = useNavigate();
   const [hasWebcamAccess, setHasWebcamAccess] = useState<boolean | null>(null);
   const [hasMicAccess, setHasMicAccess] = useState<boolean | null>(null);
-  const [currentChallenge, setCurrentChallenge] = useState<(typeof challenges)[0] | null>(null);
+  const [currentChallenge, setCurrentChallenge] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState<'pending' | 'success' | 'failed' | null>(null);
   const [countdown, setCountdown] = useState(0);
+  const [backendChallenge, setBackendChallenge] = useState<any>(null);
 
   useEffect(() => {
     // Attempt to get webcam access
@@ -42,43 +45,78 @@ const ChallengePage: React.FC = () => {
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
       return () => clearTimeout(timer);
-    } else if (countdown === 0 && currentChallenge && verificationStatus === 'pending') {
-      // Simulate verification process
+    } else if (countdown === 0 && currentChallenge && verificationStatus === 'pending' && backendChallenge) {
+      // Submit challenge result to backend
       setIsLoading(true);
-      setTimeout(() => {
-        // Mock success/failure
-        const isSuccess = Math.random() > 0.3; // 70% chance of success
-        setVerificationStatus(isSuccess ? 'success' : 'failed');
-        setIsLoading(false);
-        if (isSuccess) {
-          setTimeout(() => navigate('/success'), 2000);
-        }
-      }, 2000); // Simulate network delay and AI processing
-    }
-  }, [countdown, currentChallenge, verificationStatus, navigate]);
 
-  const startRandomChallenge = () => {
+      const submitChallenge = async () => {
+        try {
+          // Create mock submission data
+          const mockData = currentChallenge.id === 'Blink' ? 'blinked' :
+            currentChallenge.id === 'Nod' ? 'nodded' :
+              currentChallenge.id === 'SayPhrase' ? 'said_phrase' : 'completed';
+
+          const submission = {
+            challenge_id: backendChallenge.id,
+            mock_data: mockData,
+            client_timestamp: BigInt(Date.now()),
+            encrypted_biometric_data: new Uint8Array([1, 2, 3, 4]), // Mock biometric data
+            behavioral_data: JSON.stringify({ mouse_movements: [], reaction_time: 500 }) // Mock behavioral data
+          };
+
+          const result = await backendService.submitChallengeResult(submission);
+
+          setVerificationStatus(result.success ? 'success' : 'failed');
+          setIsLoading(false);
+
+          if (result.success) {
+            setTimeout(() => navigate('/success'), 2000);
+          }
+        } catch (error) {
+          console.error('Failed to submit challenge:', error);
+          setVerificationStatus('failed');
+          setIsLoading(false);
+        }
+      };
+
+      submitChallenge();
+    }
+  }, [countdown, currentChallenge, verificationStatus, backendChallenge, navigate]);
+
+  const startRandomChallenge = async () => {
     if (hasWebcamAccess === false) return; // Cannot start without webcam
 
-    // Filter challenges that might require mic if mic access is not granted
-    const availableChallenges = currentChallenge?.requiresMic && !hasMicAccess
-        ? challenges.filter(c => !c.requiresMic)
-        : challenges;
+    try {
+      setIsLoading(true);
+      // Get a challenge from the backend
+      const challenge = await backendService.startVerificationChallenge();
+      setBackendChallenge(challenge);
 
-    const randomIndex = Math.floor(Math.random() * availableChallenges.length);
-    const newChallenge = availableChallenges[randomIndex];
+      // Map backend challenge to frontend format
+      const frontendChallenge = {
+        id: challenge.prompt_type,
+        text: challenge.prompt_text,
+        duration: challenge.prompt_type === 'SayPhrase' ? 7 : 5,
+        requiresMic: challenge.prompt_type === 'SayPhrase'
+      };
 
-    // Ensure mic is available if challenge requires it
-    if (newChallenge.requiresMic && !hasMicAccess) {
+      // Ensure mic is available if challenge requires it
+      if (frontendChallenge.requiresMic && !hasMicAccess) {
         alert("This challenge requires microphone access, but it was not granted or is unavailable. Please try a different challenge or grant microphone access.");
         setVerificationStatus(null); // Reset status to allow retry
         setCurrentChallenge(null);
+        setIsLoading(false);
         return;
-    }
+      }
 
-    setCurrentChallenge(newChallenge);
-    setVerificationStatus('pending');
-    setIsLoading(false);
+      setCurrentChallenge(frontendChallenge);
+      setVerificationStatus('pending');
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Failed to start challenge:', error);
+      setIsLoading(false);
+      alert('Failed to start challenge. Please try again.');
+    }
   };
 
   const resetChallenge = () => {
@@ -123,10 +161,10 @@ const ChallengePage: React.FC = () => {
 
         {/* Mic status indicator */}
         {currentChallenge?.requiresMic && (
-            <div className={`mb-4 text-sm flex items-center justify-center ${hasMicAccess ? 'text-green-400' : 'text-red-400'}`}>
-                <Mic size={16} className="mr-2" />
-                {hasMicAccess ? 'Microphone active' : 'Microphone access denied or unavailable'}
-            </div>
+          <div className={`mb-4 text-sm flex items-center justify-center ${hasMicAccess ? 'text-green-400' : 'text-red-400'}`}>
+            <Mic size={16} className="mr-2" />
+            {hasMicAccess ? 'Microphone active' : 'Microphone access denied or unavailable'}
+          </div>
         )}
 
         <AnimatePresence mode="wait">

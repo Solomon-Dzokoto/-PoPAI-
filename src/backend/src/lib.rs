@@ -1,4 +1,4 @@
-use candid::{CandidType, Decode, Encode, Principal};
+use candid::{CandidType, Principal};
 use ic_cdk::api::time;
 use ic_cdk::export_candid;
 use serde::Deserialize;
@@ -44,6 +44,9 @@ pub struct VerificationSubmission {
     challenge_id: String,
     mock_data: String, // For mock: "blinked", "nodded", "said_phrase"
     client_timestamp: u64,
+    // Additional fields for AI model hooks
+    encrypted_biometric_data: Vec<u8>, // Encrypted biometric data for ONNX inference
+    behavioral_data: String, // Behavioral data as JSON string
 }
 
 #[derive(CandidType, Clone, Deserialize, Debug)]
@@ -74,7 +77,7 @@ pub struct ZkProofMock {
 
 // --- Canister State ---
 thread_local! {
-    static COUNTER: RefCell<u64> = const { RefCell::new(0) }; // Existing state from template
+    static COUNTER: RefCell<u64> = RefCell::new(0); // Existing state from template
 
     // PoPAI State
     static ACTIVE_CHALLENGES: RefCell<HashMap<String, VerificationChallenge>> = RefCell::new(HashMap::new());
@@ -90,7 +93,7 @@ fn generate_id() -> String {
     format!("{}-{}", ic_cdk::api::time(), ic_cdk::api::caller().to_text())
 }
 
-fn generate_nonce() -> String {
+async fn generate_nonce() -> String {
     let random_bytes: [u8; 16] = ic_cdk::api::management_canister::main::raw_rand().await.unwrap().0.try_into().unwrap_or_default();
     hex::encode(random_bytes)
 }
@@ -109,7 +112,7 @@ async fn start_verification_challenge() -> VerificationChallenge {
     }
 
     let challenge_id = generate_id();
-    let nonce = generate_nonce().await; // Call await here
+    let nonce = generate_nonce().await;
 
     // Randomly select a challenge type (mock)
     // In a real system, AI would adaptively choose this.
@@ -118,7 +121,7 @@ async fn start_verification_challenge() -> VerificationChallenge {
         (PromptType::Nod, "Nod your head up and down."),
         (PromptType::SayPhrase, "Clearly say: 'My identity is sovereign'"),
     ];
-    let (prompt_type, prompt_text) = challenges[ (time() as usize) % challenges.len() ];
+    let (prompt_type, prompt_text) = &challenges[ (time() as usize) % challenges.len() ];
 
 
     let challenge = VerificationChallenge {
@@ -211,9 +214,9 @@ async fn submit_challenge_result(submission: VerificationSubmission) -> Verifica
         MINTED_NFTS.with(|nfts| nfts.borrow_mut().insert(token_id.clone(), nft_metadata));
         OWNER_TO_NFT_ID.with(|owner_map| owner_map.borrow_mut().insert(caller, token_id.clone()));
 
-        // Placeholder for actual AI model hook
-        // onnx_inference_hook(&submission.encrypted_biometric_data);
-        // behavioral_scoring_hook(&submission.behavioral_data);
+        // Call AI model hooks for additional verification
+        let _biometric_result = onnx_inference_hook(&submission.encrypted_biometric_data);
+        let _behavioral_score = behavioral_scoring_hook(&submission.behavioral_data);
 
         VerificationResult {
             success: true,
@@ -263,22 +266,22 @@ async fn generate_zk_proof_mock(verification_hash: String) -> ZkProofMock {
 // These functions are stubs. In a real implementation, they would contain
 // logic to preprocess data, call the ONNX/Wasm models, and interpret results.
 
-// fn onnx_inference_hook(encrypted_data: &Vec<u8>) -> bool {
-//     // 1. Decrypt data (if client-side encryption was used and server needs raw)
-//     // 2. Preprocess data for ONNX model input format
-//     // 3. Call ONNX runtime with the model and input
-//     //    (Requires ONNX runtime Wasm build and ic-sys/ic0 calls for resource limits)
-//     // 4. Interpret model output (e.g., liveness score, feature vector)
-//     ic_cdk::println!("Placeholder: ONNX inference hook called with data of length {}", encrypted_data.len());
-//     true // mock result
-// }
+fn onnx_inference_hook(encrypted_data: &Vec<u8>) -> bool {
+    // 1. Decrypt data (if client-side encryption was used and server needs raw)
+    // 2. Preprocess data for ONNX model input format
+    // 3. Call ONNX runtime with the model and input
+    //    (Requires ONNX runtime Wasm build and ic-sys/ic0 calls for resource limits)
+    // 4. Interpret model output (e.g., liveness score, feature vector)
+    ic_cdk::println!("Placeholder: ONNX inference hook called with data of length {}", encrypted_data.len());
+    true // mock result
+}
 
-// fn behavioral_scoring_hook(behavioral_data: &String) -> f32 {
-//     // 1. Parse behavioral data (e.g., mouse movements, reaction times json)
-//     // 2. Apply scoring logic or pass to a behavioral model
-//     ic_cdk::println!("Placeholder: Behavioral scoring hook called with data: {}", behavioral_data);
-//     0.95 // mock score
-// }
+fn behavioral_scoring_hook(behavioral_data: &String) -> f32 {
+    // 1. Parse behavioral data (e.g., mouse movements, reaction times json)
+    // 2. Apply scoring logic or pass to a behavioral model
+    ic_cdk::println!("Placeholder: Behavioral scoring hook called with data: {}", behavioral_data);
+    0.95 // mock score
+}
 
 
 // --- Existing Canister Methods (from template) ---
