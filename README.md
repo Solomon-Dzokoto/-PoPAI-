@@ -1,29 +1,23 @@
-# 🧪🔥 Ultimate IC Vibe Coding Template
+# 🛡️ PoPAI: Proof of Personhood via AI
 
-This template was built for the **IC Vibe Coding Bootcamp (Rust Edition)** and it's meant to be used in Advance Challenge or in a future Hackathon.
+PoPAI is a fully on-chain, privacy-preserving Proof-of-Personhood (PoP) system that leverages AI-based liveness and uniqueness verification, deployed on the Internet Computer Protocol (ICP). It ensures a user is a unique human—without storing sensitive biometrics or relying on centralized providers.
 
 ## Welcome! 👋
 
-This repository offers a high-quality, production-ready template to jumpstart your Internet Computer (ICP) development.
+This repository contains the source code for PoPAI. It utilizes a robust foundation for Internet Computer (ICP) development, including:
 
-It includes:
+- 🦀 **Rust-based Canister** backend for PoPAI logic.
+- ⚛️ **React + TailwindCSS + Framer Motion + Typescript** frontend for a modern user experience.
+- 🧪 **Full Test Suite**: Vitest + PocketIC for backend and frontend testing.
+- 🔁 **CI/CD** with GitHub Actions for automated tests and code quality.
+- 🤖 **Copilot Integration** to assist with development.
 
-- 🦀 **Rust-based Canister** backend
-- ⚛️ **React + Tailwind + Typescript** frontend
-- 🤖 **IC LLM Canister** integration for Agentic workflows
-- 🧪 **Full Test Suite**: Vitest + PocketIC for backend and frontend
-- 🔁 **CI/CD** with GitHub Actions for automated tests and code quality
-- 🤖 **Copilot Integration** to auto-generate tests, code, and changelogs
-
-Whether you're building full-stack dapps or agents, this template gives you a solid foundation to start fast and scale smoothly. 🚀
-
-![Template Screenshot](.github/assets/template-screenshot.png)
+This project aims to provide a secure, private, and decentralized way to verify personhood for Web3 applications.
 
 ---
 
 ## 📜 Table of Contents
 
-- [🎥 Recording](#-recording)
 - [🚀 Getting Started](#-getting-started)
 - [📁 Project Structure](#-project-structure)
 - [✅ Testing Patterns](#-testing-patterns)
@@ -33,81 +27,68 @@ Whether you're building full-stack dapps or agents, this template gives you a so
 - [📩 Submit Your Project!](#-submit-your-project)
 
 ---
-
-## 🎥 Recording
-
-There was an Advanced Challenge Lab session, that was recorded and had a lot of information and showcase of Vibe Coding using this template.
-
-You can see here the full recording: https://www.youtube.com/watch?v=ZuNUy13wmlI
-
 ---
 
 ## 🚀 Getting Started
 
-### 🧑‍💻 1. Get Codespace Ready
+### Prerequisites
 
-A **devcontainer** is preconfigured for you to start coding instantly!
+- Ensure you have [Node.js](https://nodejs.org/) (v18 or later recommended) installed.
+- Install the DFINITY Canister SDK [dfx](https://internetcomputer.org/docs/current/developer-docs/setup/install).
+- This project is preconfigured for Gitpod or GitHub Codespaces for a seamless setup experience (see `.devcontainer/devcontainer.json`).
 
-- Click on "Use this Template" → "Create a new repository".
-- Click "Code → Open with Codespaces"
-- Change machine type to 4-core 16GB RAM • 32GB
-- Once the codespace is created, you can open it in VS Code Local
-- Everything is pre-installed and ready for you to run the following commands
-
-### 2. Install Dependencies
+### 1. Clone the Repository
 
 ```bash
+git clone <repository-url>
+cd popai-project-directory
+```
+*(Replace `<repository-url>` and `popai-project-directory`)*
+
+### 2. Install Frontend Dependencies
+
+The frontend project is located in `src/frontend`.
+
+```bash
+cd src/frontend
 npm install
+cd ../..
+```
+*(This brings you back to the root directory)*
+
+Alternatively, from the root directory:
+```bash
+npm install --prefix src/frontend
 ```
 
-### 3. Running Ollama
+### 3. Start the Local Replica
 
-To be able to test the agent locally, you'll need a server for processing the agent's prompts. For that, we'll use `ollama`, which is a tool that can download and serve LLMs.
-See the documentation on the [Ollama website](https://ollama.com/). Run:
+In one terminal window, navigate to the project root and run:
 
 ```bash
-ollama serve
-# Expected to start listening on port 11434
+dfx start --clean --background
 ```
+*(The `--background` flag is optional; remove it to see replica logs in the current terminal).*
 
-The above command will start the Ollama server, so that it can process requests by the agent. Additionally, and in a separate window, run the following command to download the LLM that will be used by the agent:
+### 4. Deploy Canisters
+
+In another terminal window, from the project root:
 
 ```bash
-ollama run llama3.1:8b
+dfx deploy
 ```
+This command will deploy the `backend` (PoPAI logic) and `frontend` canisters as defined in `dfx.json`.
+*(Note: The project also includes an `llm` canister in `dfx.json` as part of the original template. It will be deployed but is not actively used by the core PoPAI mock functionality).*
 
-Once the command executes and the model is loaded, you can terminate it by typing /bye. You won't need to do this step again.
+### 5. Start the Frontend Development Server
 
-### 4. Deployment
-
-Then, in one terminal window, run:
-
-```bash
-dfx start --clean
-```
-
-Keep this tab open for reading logs.
-
-Then pull the dependency and deploy the canisters in another window:
+To run the React frontend with hot reloading:
 
 ```bash
-dfx deploy # deploys the backend and frontend canisters
-```
-
-```bash
-dfx deps pull
-dfx deps deploy  # deploys the llm canister
-```
-
-### 5. Start the Development Server
-
-You can start the frontend development server with:
-
-```bash
-# Just the frontend development server
+cd src/frontend
 npm start
-
 ```
+The application will typically be available at `http://localhost:5173` (Vite's default) or a port provided by `dfx`. Check the output of `dfx deploy` for the frontend canister URL.
 
 ### 6. Run Tests
 
@@ -141,20 +122,22 @@ ICP-Bootcamp-Vibe-Coding/
 │   │   │   ├── App.tsx                   # Main App component
 │   │   │   ├── index.css                 # Global styles with Tailwind
 │   │   │   ├── components/               # Reusable UI components
-│   │   │   ├── services/                 # Canister service layers
-│   │   │   └── views/                    # Page-level components
-│   │   ├── assets/                       # Static assets (images, icons)
-│   │   ├── tests/                        # Frontend unit tests
-│   │   ├── index.html                    # Frontend entry point
-│   │   ├── main.tsx                      # React main file
-│   │   ├── package.json                  # Frontend dependencies
-│   │   ├── tsconfig.json                 # TypeScript configuration
-│   │   ├── vite.config.ts                # Vite build configuration
-│   │   └── vite-env.d.ts                 # Vite type definitions
-│   └── declarations/                     # Auto-generated canister interfaces
-├── tests/
-│   ├── src/                              # Backend test files
-│   ├── backend-test-setup.ts             # PocketIC instance
+│   │   │   ├── services/                 # Canister service layers (e.g., actor creation)
+│   │   │   └── views/                    # Page-level components (HomePage, ChallengePage, etc.)
+│   │   ├── assets/                       # Static assets
+│   │   ├── tests/                        # Frontend unit/integration tests
+│   │   ├── index.html                    # HTML entry point
+│   │   ├── main.tsx                      # React root
+│   │   ├── package.json                  # Frontend npm dependencies
+│   │   ├── tsconfig.json                 # TypeScript config for frontend
+│   │   ├── vite.config.ts                # Vite config
+│   │   └── vite-env.d.ts                 # Vite environment types
+│   ├── shared_types/                     # TypeScript types shared between frontend and backend (manual, for reference)
+│   │   └── index.ts
+│   └── declarations/                     # Auto-generated canister interface types (from .did files)
+├── tests/                                # Root test directory (Vitest with PocketIC)
+│   ├── src/                              # Backend integration tests
+│   ├── backend-test-setup.ts             # PocketIC setup for backend tests
 │   └── vitest.config.ts                  # Vitest configuration
 ├── scripts/
 │   ├── dev-container-setup.sh            # Extra set up steps for codespace
@@ -276,7 +259,7 @@ The AI will analyze the current git diffs, then reference other files in the rep
 - [Copilot Reference](https://code.visualstudio.com/docs/copilot/reference/copilot-vscode-features)
 - [ICP Dev Docs](https://internetcomputer.org/docs)
 - [Rust CDK](https://internetcomputer.org/docs/current/developer-docs/backend/rust/)
-- [PicJS Doc](https://dfinity.github.io/pic-js/)
+- [PicJS Doc](https://dfinity.github.io/pic-js/) <!-- Note: This might be PocketIC.js, link should be verified -->
 - [Vitest Testing Framework](https://vitest.dev/)
 
 ---
@@ -285,18 +268,11 @@ The AI will analyze the current git diffs, then reference other files in the rep
 
 We welcome contributions! If you encounter a bug, have a feature request, or want to suggest improvements, please open an issue or submit a Pull Request.
 
+<!--
 We especially welcome candidates of limits you face, consider using the **Limit Candidate Form Issue** – it helps us prioritize and address the most impactful limits effectively.
+-->
+<!-- This section can be tailored or removed if not applicable -->
 
 ---
 
-## 📩 Submit Your Project!
-
-🎯 **Completed your challenge? Submit your project here:**  
-📢 [Taikai Submission](https://taikai.network/icp-eu-alliance/hackathons/VIBATHON)
-
-📌 **Want to explore more challenges? Return to the index:**  
-🔗 [IC Vibathon Index](https://github.com/pt-icp-hub/IC-Vibathon-Index)
-
----
-
-**Now go build something fast, tested, and production-ready 🚀🦀**
+**Now go build something amazing with PoPAI! 🛡️🚀**
